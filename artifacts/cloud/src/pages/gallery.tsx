@@ -72,8 +72,16 @@ export default function Gallery() {
         "Content-Type": file.type,
       },
       body: file,
+    }).catch(err => {
+      alert("Network/CORS Error: " + err.message);
+      throw err;
     });
-    if (!uploadRes.ok) throw new Error("Upload failed");
+
+    if (!uploadRes.ok) {
+      const text = await uploadRes.text();
+      alert("Backblaze Error (" + uploadRes.status + "): " + text);
+      throw new Error("Upload failed");
+    }
 
     // Use direct fetch so folderName is guaranteed to be in the body
     const body = {
