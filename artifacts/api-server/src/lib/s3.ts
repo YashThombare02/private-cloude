@@ -11,8 +11,7 @@ export const s3Client = new S3Client({
     accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
     secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || "",
   },
-  // Required for Backblaze B2 and other S3-compatible providers
-  forcePathStyle: process.env.S3_FORCE_PATH_STYLE === "true" || true, 
+  forcePathStyle: false, // B2 requires virtual-hosted style for CORS preflight to work correctly
 });
 
 export const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME || "private-cloud";
