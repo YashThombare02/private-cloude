@@ -28,4 +28,4 @@ EXPOSE 5000
 
 # Start the API server
 WORKDIR /app/artifacts/api-server
-CMD ["pnpm", "run", "start"]
+CMD ["node", "--enable-source-maps", "./dist/index.mjs"]
