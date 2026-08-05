@@ -15,6 +15,11 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
+import { ensureS3Cors } from "./lib/s3";
+
+// Apply S3 API CORS rules on startup
+ensureS3Cors().catch(console.error);
+
 app.listen(port, (err) => {
   if (err) {
     logger.error({ err }, "Error listening on port");
