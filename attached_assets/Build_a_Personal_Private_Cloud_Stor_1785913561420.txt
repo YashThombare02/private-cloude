@@ -1,0 +1,606 @@
+Build a Personal Private Cloud Storage Website
+I want to build a production-ready personal cloud storage website similar to Google Photos + Google Drive, but only for myself and a few trusted users.
+
+The application will primarily store Photos and Videos.
+
+The website must be optimized for:
+
+Desktop
+
+iPhone Safari
+
+Android Chrome
+
+The website should feel similar to Apple iCloud Photos with a modern dark UI.
+
+Deployment
+The project must be structured for deployment without modification.
+
+Frontend
+Deploy on Vercel
+
+Backend
+Deploy on Render
+
+Database
+Supabase PostgreSQL
+
+Only store metadata.
+
+Never store images or videos inside PostgreSQL.
+
+Storage
+Use Cloudflare R2
+
+Store every uploaded image and video inside Cloudflare R2.
+
+The R2 bucket must remain private.
+
+All media access must go through the FastAPI backend.
+
+Tech Stack
+Frontend
+
+React (Vite)
+
+TypeScript
+
+Tailwind CSS
+
+React Router
+
+Axios
+
+Backend
+
+FastAPI
+
+SQLAlchemy
+
+Alembic
+
+JWT Authentication
+
+bcrypt password hashing
+
+Pydantic
+
+Authentication
+Create a login page.
+
+Fields
+
+Username
+
+Password
+
+There should be NO registration page.
+
+Users cannot create accounts.
+
+Only the Admin can create users.
+
+Passwords must always be stored using bcrypt hashes.
+
+Use JWT Authentication.
+
+Persist login securely.
+
+Logout option.
+
+Protected routes.
+
+User Roles
+Admin
+Admin can
+
+Create users
+
+Delete users
+
+Disable users
+
+Enable users
+
+Reset passwords
+
+Upload photos
+
+Upload videos
+
+Delete any media
+
+View every media file
+
+Download every media file
+
+User
+Users can
+
+Login
+
+View photos
+
+View videos
+
+Upload photos
+
+Upload videos
+
+Download media
+
+Users cannot
+
+Delete users
+
+Access Admin Panel
+
+Modify other users
+
+Dashboard
+After login show
+
+"My Gallery"
+
+Use a responsive masonry layout similar to Google Photos.
+
+Dark theme.
+
+Smooth animations.
+
+Apple-style UI.
+
+Upload
+Large Upload button.
+
+Support
+
+Photos
+
+Videos
+
+Desktop
+
+Drag & Drop
+
+Multiple upload
+
+iPhone
+
+Support
+
+Camera
+
+Photo Library
+
+Files App
+
+Show
+
+Upload progress
+
+Upload speed
+
+Remaining uploads
+
+Large files supported.
+
+Gallery
+Display every uploaded file.
+
+Each card shows
+
+Thumbnail
+
+Filename
+
+Upload Date
+
+Size
+
+Uploaded By
+
+Lazy loading.
+
+Infinite scrolling.
+
+Image Viewer
+Click image.
+
+Open fullscreen viewer.
+
+Support
+
+Swipe left/right
+
+Pinch zoom
+
+Double tap zoom
+
+Fullscreen
+
+Download
+
+Share
+
+Works perfectly on iPhone.
+
+Video Player
+Videos should play directly inside the browser.
+
+Do NOT require downloading.
+
+Support
+
+Streaming
+
+Seek
+
+Fullscreen
+
+Playback speed
+
+Picture in Picture
+
+AirPlay (iPhone)
+
+Volume
+
+Videos should stream efficiently from Cloudflare R2.
+
+Search
+Search by
+
+Filename
+
+Upload Date
+
+Filters
+Photos
+
+Videos
+
+Sorting
+Newest
+
+Oldest
+
+Largest
+
+Smallest
+
+A-Z
+
+Z-A
+
+Favorites
+Users can mark media as Favorite.
+
+Create a Favorites section.
+
+Storage Usage
+Display
+
+
+Cloud Storage
+
+2.4 GB / 10 GB Used
+
+153 Photos
+
+42 Videos
+Update automatically.
+
+Admin Panel
+Admin Dashboard should contain
+
+User Management
+Create User
+
+Delete User
+
+Disable User
+
+Enable User
+
+Reset Password
+
+Storage Statistics
+Display
+
+Total Photos
+
+Total Videos
+
+Total Users
+
+Total Storage Used
+
+Database
+Use Supabase PostgreSQL
+
+Users Table
+SQL
+
+id
+
+username
+
+password_hash
+
+role
+
+is_active
+
+created_at
+Files Table
+SQL
+
+id
+
+original_filename
+
+stored_filename
+
+mime_type
+
+extension
+
+size
+
+cloudflare_r2_key
+
+thumbnail_key
+
+uploaded_by
+
+uploaded_at
+
+favorite
+Only metadata should be stored inside PostgreSQL.
+
+Cloudflare R2
+Store every uploaded media file in Cloudflare R2.
+
+Bucket structure
+
+
+media/
+
+    photos/
+
+    videos/
+
+    thumbnails/
+Generate unique object names.
+
+Keep bucket private.
+
+Never expose R2 credentials.
+
+Never expose public R2 URLs.
+
+Upload Flow
+User selects media.
+
+Backend validates file.
+
+Backend uploads file to Cloudflare R2.
+
+Generate thumbnail automatically.
+
+Save metadata in PostgreSQL.
+
+Return success.
+
+Gallery updates instantly.
+
+View Flow
+When a user clicks an image
+
+Verify JWT.
+
+Read metadata from PostgreSQL.
+
+Stream image through FastAPI.
+
+Display in fullscreen viewer.
+
+When a user clicks a video
+
+Verify JWT.
+
+Stream video using HTTP Range Requests.
+
+Support seeking.
+
+Do NOT expose direct Cloudflare R2 URLs to the frontend.
+
+Download Flow
+When Download is clicked
+
+Verify JWT.
+
+Read metadata.
+
+Stream original file.
+
+Preserve original filename.
+
+Security
+Implement
+
+JWT Authentication
+
+bcrypt password hashing
+
+Upload validation
+
+MIME validation
+
+File size limits
+
+CORS
+
+Secure headers
+
+Environment variables
+
+SQL Injection protection
+
+XSS protection
+
+Every API should require authentication.
+
+Mobile Optimization
+The website should behave like a native iPhone app.
+
+Support
+
+Safe Area Insets
+
+Swipe gestures
+
+Pinch Zoom
+
+Responsive navigation
+
+Bottom navigation
+
+Large touch targets
+
+Smooth scrolling
+
+Progressive Web App (PWA)
+Convert the website into a PWA.
+
+Allow installation on
+
+iPhone
+
+Android
+
+Users should be able to add it to their Home Screen.
+
+Include
+
+Manifest
+
+Icons
+
+Service Worker
+
+API
+Authentication
+
+http
+
+POST /login
+
+POST /logout
+
+GET /me
+Admin
+
+http
+
+POST /admin/users
+
+GET /admin/users
+
+PUT /admin/users/{id}
+
+DELETE /admin/users/{id}
+Media
+
+http
+
+POST /upload
+
+GET /media
+
+GET /media/{id}
+
+GET /view/{id}
+
+GET /download/{id}
+
+DELETE /media/{id}
+Deployment
+Provide everything required for deployment.
+
+Vercel
+vercel.json
+
+Environment variables
+
+Production build configuration
+
+Render
+requirements.txt
+
+render.yaml
+
+Production startup command
+
+Health check endpoint
+
+Environment Variables
+Create a complete .env.example containing
+
+JWT Secret
+
+Database URL
+
+Cloudflare R2 Access Key
+
+Cloudflare R2 Secret Key
+
+Cloudflare R2 Bucket
+
+Cloudflare Account ID
+
+Cloudflare Endpoint
+
+Frontend URL
+
+Folder Structure
+
+frontend/
+
+backend/
+
+shared/
+
+docs/
+Documentation
+Generate a professional README explaining
+
+Local setup
+
+Database configuration
+
+Cloudflare R2 setup
+
+Environment variables
+
+Vercel deployment
+
+Render deployment
+
+Production configuration
+
+Troubleshooting
+
+Code Quality
+Use TypeScript on the frontend.
+
+Follow FastAPI best practices.
+
+Write modular, reusable components.
+
+Add comments only where they improve clarity.
+
+Keep the codebase clean and production-ready.
+
+Do not generate placeholder code or TODOs—implement all requested functionality.

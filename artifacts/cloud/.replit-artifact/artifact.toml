@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Private Cloud"
+description = "A private personal cloud storage app for photos and videos, similar to iCloud Photos, used by the owner and a few trusted invited users. Admin-managed accounts (no self-registration), dark iCloud-style masonry gallery, drag-and-drop upload, fullscreen photo viewer, streaming video player, search/sort/favorites, storage usage stats, and an admin panel for user management."
+version = "1.0.0"
+id = "artifacts/cloud"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25281
+
+[services.development]
+run = "pnpm --filter @workspace/cloud run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/cloud", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/cloud/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25281"
+BASE_PATH = "/"

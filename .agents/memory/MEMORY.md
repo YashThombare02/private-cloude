@@ -1,0 +1,1 @@
+- [Orval zod codegen needs zod v4](orval-zod-v4-catalog.md) — pnpm-workspace catalog pin `zod: ^3.25.76` breaks `api-spec` codegen typecheck; must be zod v4.

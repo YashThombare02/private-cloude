@@ -10,6 +10,12 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: admin
+    description: Admin user management
+  - name: media
+    description: Photo and video library
 paths:
   /healthz:
     get:
@@ -24,6 +30,504 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Log in with username and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Invalid credentials or disabled account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Log out the current session
+      responses:
+        "204":
+          description: Logged out
+
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get the currently authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /admin/users:
+    get:
+      operationId: listUsers
+      tags: [admin]
+      summary: List all users
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "403":
+          description: Admin only
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+    post:
+      operationId: createUser
+      tags: [admin]
+      summary: Create a new user (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "201":
+          description: Created user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "403":
+          description: Admin only
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "409":
+          description: Username already taken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /admin/users/{id}:
+    patch:
+      operationId: updateUser
+      tags: [admin]
+      summary: Update a user's role or active status (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "403":
+          description: Admin only
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+    delete:
+      operationId: deleteUser
+      tags: [admin]
+      summary: Delete a user (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          description: Admin only
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /admin/users/{id}/reset-password:
+    post:
+      operationId: resetUserPassword
+      tags: [admin]
+      summary: Reset a user's password (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordResetInput"
+      responses:
+        "200":
+          description: Password reset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "403":
+          description: Admin only
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Storage and account statistics (admin only)
+      responses:
+        "200":
+          description: Admin statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+        "403":
+          description: Admin only
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /media/uploads/request-url:
+    post:
+      operationId: requestMediaUploadUrl
+      tags: [media]
+      summary: Request a presigned URL to upload a photo or video
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MediaUploadUrlInput"
+      responses:
+        "200":
+          description: Presigned upload URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaUploadUrlResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /media:
+    get:
+      operationId: listMedia
+      tags: [media]
+      summary: List media in the gallery
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [photo, video]
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: favorite
+          in: query
+          schema:
+            type: boolean
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [date, size, name]
+            default: date
+        - name: sortDir
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 40
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: Media list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaListResponse"
+    post:
+      operationId: createMedia
+      tags: [media]
+      summary: Finalize an uploaded photo or video and save its metadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MediaInput"
+      responses:
+        "201":
+          description: Created media record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Media"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /media/stats:
+    get:
+      operationId: getMediaStats
+      tags: [media]
+      summary: Storage usage summary
+      responses:
+        "200":
+          description: Storage usage
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaStats"
+
+  /media/{id}:
+    get:
+      operationId: getMedia
+      tags: [media]
+      summary: Get media metadata
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Media metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Media"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+    patch:
+      operationId: updateMedia
+      tags: [media]
+      summary: Toggle favorite on a media item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MediaUpdate"
+      responses:
+        "200":
+          description: Updated media
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Media"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+    delete:
+      operationId: deleteMedia
+      tags: [media]
+      summary: Delete a media item (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          description: Admin only
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /media/{id}/view:
+    get:
+      operationId: viewMedia
+      tags: [media]
+      summary: Stream the original photo or video (supports HTTP Range requests)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Media stream
+          content:
+            "*/*":
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /media/{id}/thumbnail:
+    get:
+      operationId: getMediaThumbnail
+      tags: [media]
+      summary: Stream the thumbnail image for a media item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Thumbnail image
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /media/{id}/download:
+    get:
+      operationId: downloadMedia
+      tags: [media]
+      summary: Download the original file, preserving its filename
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: File download
+          content:
+            "*/*":
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +538,213 @@ components:
       required:
         - status
 
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    User:
+      type: object
+      required: [id, username, role, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        role:
+          type: string
+          enum: [admin, user]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    LoginInput:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+
+    UserInput:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 3
+        password:
+          type: string
+          minLength: 8
+        role:
+          type: string
+          enum: [admin, user]
+          default: user
+
+    UserUpdate:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [admin, user]
+        isActive:
+          type: boolean
+
+    PasswordResetInput:
+      type: object
+      required: [newPassword]
+      properties:
+        newPassword:
+          type: string
+          minLength: 8
+
+    AdminStats:
+      type: object
+      required: [totalUsers, totalPhotos, totalVideos, totalStorageBytes]
+      properties:
+        totalUsers:
+          type: integer
+        totalPhotos:
+          type: integer
+        totalVideos:
+          type: integer
+        totalStorageBytes:
+          type: number
+
+    MediaUploadUrlInput:
+      type: object
+      required: [name, size, contentType, mediaType]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        size:
+          type: integer
+          minimum: 1
+        contentType:
+          type: string
+          minLength: 1
+        mediaType:
+          type: string
+          enum: [photo, video]
+
+    MediaUploadUrlResponse:
+      type: object
+      required:
+        - signature
+        - timestamp
+        - cloudName
+        - apiKey
+        - folder
+      properties:
+        signature:
+          type: string
+        timestamp:
+          type: integer
+        cloudName:
+          type: string
+        apiKey:
+          type: string
+        folder:
+          type: string
+
+    MediaInput:
+      type: object
+      required: [originalFilename, mimeType, size, objectPath, mediaType]
+      properties:
+        originalFilename:
+          type: string
+          minLength: 1
+        mimeType:
+          type: string
+          minLength: 1
+        size:
+          type: integer
+          minimum: 1
+        objectPath:
+          type: string
+          minLength: 1
+        mediaType:
+          type: string
+          enum: [photo, video]
+
+    MediaUpdate:
+      type: object
+      required: [favorite]
+      properties:
+        favorite:
+          type: boolean
+
+    Media:
+      type: object
+      required:
+        - id
+        - originalFilename
+        - mimeType
+        - extension
+        - size
+        - mediaType
+        - uploadedByUsername
+        - uploadedAt
+        - favorite
+        - hasThumbnail
+      properties:
+        id:
+          type: integer
+        originalFilename:
+          type: string
+        mimeType:
+          type: string
+        extension:
+          type: string
+        size:
+          type: number
+        mediaType:
+          type: string
+          enum: [photo, video]
+        uploadedByUsername:
+          type: string
+        uploadedAt:
+          type: string
+          format: date-time
+        favorite:
+          type: boolean
+        hasThumbnail:
+          type: boolean
+
+    MediaListResponse:
+      type: object
+      required: [items, total, hasMore]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Media"
+        total:
+          type: integer
+        hasMore:
+          type: boolean
+
+    MediaStats:
+      type: object
+      required:
+        - totalStorageBytes
+        - storageLimitBytes
+        - totalPhotos
+        - totalVideos
+      properties:
+        totalStorageBytes:
+          type: number
+        storageLimitBytes:
+          type: number
+        totalPhotos:
+          type: integer
+        totalVideos:
+          type: integer
