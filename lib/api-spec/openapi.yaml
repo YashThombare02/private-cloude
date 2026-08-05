@@ -638,21 +638,12 @@ components:
     MediaUploadUrlResponse:
       type: object
       required:
-        - signature
-        - timestamp
-        - cloudName
-        - apiKey
-        - folder
+        - uploadUrl
+        - objectKey
       properties:
-        signature:
+        uploadUrl:
           type: string
-        timestamp:
-          type: integer
-        cloudName:
-          type: string
-        apiKey:
-          type: string
-        folder:
+        objectKey:
           type: string
 
     MediaInput:

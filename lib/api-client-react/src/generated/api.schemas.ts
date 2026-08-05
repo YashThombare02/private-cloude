@@ -96,11 +96,8 @@ export interface MediaUploadUrlInput {
 }
 
 export interface MediaUploadUrlResponse {
-  signature: string;
-  timestamp: number;
-  cloudName: string;
-  apiKey: string;
-  folder: string;
+  uploadUrl: string;
+  objectKey: string;
 }
 
 export type MediaInputMediaType = typeof MediaInputMediaType[keyof typeof MediaInputMediaType];

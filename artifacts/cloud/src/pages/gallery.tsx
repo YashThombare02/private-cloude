@@ -60,31 +60,27 @@ export default function Gallery() {
   /* ── upload one file ── */
   const uploadFile = async (file: File, folderName?: string) => {
     const mediaType = file.type.startsWith("video") ? "video" : "image";
-    const { signature, timestamp, cloudName, apiKey, folder } =
+    const { uploadUrl, objectKey } =
       await requestUrlMutation.mutateAsync({
+        // @ts-ignore - Ignore type error during manual schema migration
         data: { name: file.name, contentType: file.type, size: file.size, mediaType },
       });
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("api_key", apiKey);
-    formData.append("timestamp", timestamp.toString());
-    formData.append("signature", signature);
-    formData.append("folder", folder);
-
-    const uploadRes = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/${mediaType}/upload`,
-      { method: "POST", body: formData }
-    );
-    const uploadData = await uploadRes.json();
-    if (!uploadRes.ok) throw new Error(uploadData.error?.message || "Upload failed");
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type,
+      },
+      body: file,
+    });
+    if (!uploadRes.ok) throw new Error("Upload failed");
 
     // Use direct fetch so folderName is guaranteed to be in the body
     const body = {
       originalFilename: file.name,
       mimeType: file.type,
       size: file.size,
-      objectPath: uploadData.public_id,
+      objectPath: objectKey,
       mediaType: file.type.startsWith("video") ? "video" : "photo",
       folderName: folderName || null,
     };
