@@ -30,11 +30,10 @@ router.post("/login", async (req, res) => {
 
     const token = signToken({ userId: user.id, role: user.role });
     
-    const isProd = process.env.NODE_ENV === "production";
     res.cookie("token", token, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
+      secure: true,
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
@@ -52,11 +51,10 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/logout", (req, res) => {
-  const isProd = process.env.NODE_ENV === "production";
   res.clearCookie("token", {
     httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? "none" : "lax",
+    secure: true,
+    sameSite: "none",
   });
   res.status(204).end();
 });
@@ -68,11 +66,10 @@ router.get("/me", authenticate, async (req, res) => {
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
 
     if (!user || !user.isActive) {
-      const isProd = process.env.NODE_ENV === "production";
       res.clearCookie("token", {
         httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? "none" : "lax",
+        secure: true,
+        sameSite: "none",
       });
       res.status(401).json({ error: "Account disabled or not found" });
       return;
