@@ -167,14 +167,18 @@ router.delete("/:id", requireAdmin, async (req, res) => {
     await db.delete(filesTable).where(eq(filesTable.id, id));
     
     // Delete from Cloudinary
-    await cloudinary.uploader.destroy(file.objectPath, { 
-      resource_type: file.mediaType === 'video' ? 'video' : 'image' 
-    });
+    try {
+      await cloudinary.uploader.destroy(file.objectPath, { 
+        resource_type: file.mediaType === 'video' ? 'video' : 'image' 
+      });
+    } catch (cloudinaryErr) {
+      console.error("Cloudinary destroy error:", cloudinaryErr);
+    }
     
     res.status(204).end();
   } catch (error) {
-    req.log.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Delete media error:", error);
+    res.status(500).json({ error: "Failed to delete media" });
   }
 });
 
