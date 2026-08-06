@@ -12,6 +12,8 @@ export const s3Client = new S3Client({
     secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || "",
   },
   forcePathStyle: false, // B2 requires virtual-hosted style for CORS preflight to work correctly
+  requestChecksumCalculation: "WHEN_NOT_SUPPORTED",
+  responseChecksumValidation: "WHEN_NOT_SUPPORTED",
 });
 
 export const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME || "private-cloud";

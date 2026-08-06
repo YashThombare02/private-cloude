@@ -51,9 +51,9 @@ router.post("/upload/direct", requireAdmin, upload.single("file"), async (req, r
     }).returning();
 
     res.status(201).json({ ...newFile, hasThumbnail: !!newFile.thumbnailObjectPath });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Direct upload failed:", error);
-    res.status(500).json({ error: "Failed to upload file directly" });
+    res.status(500).json({ error: "S3 Error: " + (error.message || "Unknown error") });
   }
 });
 
