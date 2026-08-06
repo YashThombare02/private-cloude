@@ -5,46 +5,51 @@ import { authenticate, requireAdmin } from "../lib/jwt";
 import { s3Client, S3_BUCKET_NAME } from "../lib/s3";
 import { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import multer from "multer";
-
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB max
-});
 
 const router = Router();
 router.use(authenticate);
 
-// Direct upload bypassing browser CORS
-router.post("/upload/direct", requireAdmin, upload.single("file"), async (req, res) => {
+// Generate pre-signed URL for uploading to S3
+router.post("/uploads/request-url", requireAdmin, async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No file provided" });
-    }
-    const { folderName } = req.body;
-    const originalFilename = Buffer.from(req.file.originalname, "latin1").toString("utf8");
+    const { name, contentType } = req.body;
     
-    const objectKey = `${Date.now()}-${originalFilename.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+    // Generate a unique object key
+    const objectKey = `${Date.now()}-${name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
     
     const command = new PutObjectCommand({
       Bucket: S3_BUCKET_NAME,
       Key: objectKey,
-      ContentType: req.file.mimetype,
-      Body: req.file.buffer,
+      ContentType: contentType,
     });
-    
-    await s3Client.send(command);
 
+    const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 900 });
+
+    res.json({
+      uploadUrl,
+      objectKey
+    });
+  } catch (error) {
+    console.error("Failed to generate presigned upload URL:", error);
+    res.status(500).json({ error: "Failed to generate upload URL" });
+  }
+});
+
+// Finalize upload
+router.post("/", requireAdmin, async (req, res) => {
+  try {
+    const { originalFilename, mimeType, size, objectPath, mediaType, folderName } = req.body;
     const { userId } = res.locals.user;
+    
     const [user] = await db.select({ username: usersTable.username }).from(usersTable).where(eq(usersTable.id, userId)).limit(1);
 
     const [newFile] = await db.insert(filesTable).values({
       originalFilename,
-      mimeType: req.file.mimetype,
+      mimeType,
       extension: originalFilename.split('.').pop() || "",
-      size: req.file.size,
-      objectPath: objectKey,
-      mediaType: req.file.mimetype.startsWith("video") ? "video" : "photo",
+      size,
+      objectPath,
+      mediaType,
       folderName: folderName || null,
       uploadedBy: userId,
       uploadedByUsername: user?.username || "unknown"
@@ -52,8 +57,8 @@ router.post("/upload/direct", requireAdmin, upload.single("file"), async (req, r
 
     res.status(201).json({ ...newFile, hasThumbnail: !!newFile.thumbnailObjectPath });
   } catch (error: any) {
-    console.error("Direct upload failed:", error);
-    res.status(500).json({ error: "S3 Error: " + (error.message || "Unknown error") });
+    req.log.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
