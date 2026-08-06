@@ -58,46 +58,26 @@ export default function Gallery() {
       : standalone;
 
   const uploadFile = async (file: File, folderName?: string) => {
-    const mediaType = file.type.startsWith("video") ? "video" : "image";
-    const { uploadUrl, objectKey } =
-      await requestUrlMutation.mutateAsync({
-        // @ts-ignore
-        data: { name: file.name, contentType: file.type, size: file.size, mediaType },
-      });
+    const formData = new FormData();
+    formData.append("file", file);
+    if (folderName) {
+      formData.append("folderName", folderName);
+    }
 
-    const uploadRes = await fetch(uploadUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": file.type,
-      },
-      body: file,
+    console.log("[DEBUG] POSTing DIRECTLY to Render backend with file:", file.name);
+    
+    const uploadRes = await fetch("https://private-cloude.onrender.com/api/media/upload/direct", {
+      method: "POST",
+      body: formData,
+      credentials: "include",
     }).catch(err => {
-      alert("Network/CORS Error: " + err.message);
+      alert("Network Error: " + err.message);
       throw err;
     });
 
     if (!uploadRes.ok) {
-      const text = await uploadRes.text();
-      alert("Backblaze Error (" + uploadRes.status + "): " + text);
-      throw new Error("Upload failed");
-    }
-
-    const body = {
-      originalFilename: file.name,
-      mimeType: file.type,
-      size: file.size,
-      objectPath: objectKey,
-      mediaType: file.type.startsWith("video") ? "video" : "photo",
-      folderName: folderName || null,
-    };
-    const saveRes = await fetch("/api/media", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      credentials: "include",
-    });
-    if (!saveRes.ok) {
-      const err = await saveRes.json().catch(() => ({}));
+      const err = await uploadRes.json().catch(() => ({}));
+      alert("Upload Failed: " + (err.error || uploadRes.statusText));
       throw new Error(err.error || "Failed to save file");
     }
   };
