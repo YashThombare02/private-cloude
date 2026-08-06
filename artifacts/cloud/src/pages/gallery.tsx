@@ -59,48 +59,26 @@ export default function Gallery() {
 
   /* ── upload one file ── */
   const uploadFile = async (file: File, folderName?: string) => {
-    const mediaType = file.type.startsWith("video") ? "video" : "image";
-    const { uploadUrl, objectKey } =
-      await requestUrlMutation.mutateAsync({
-        // @ts-ignore - Ignore type error during manual schema migration
-        data: { name: file.name, contentType: file.type, size: file.size, mediaType },
-      });
+    const formData = new FormData();
+    formData.append("file", file);
+    if (folderName) {
+      formData.append("folderName", folderName);
+    }
 
-    const uploadRes = await fetch(uploadUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": file.type,
-      },
-      body: file,
+    console.log("[DEBUG] POSTing to /api/media/upload/direct with file:", file.name);
+    
+    const uploadRes = await fetch("/api/media/upload/direct", {
+      method: "POST",
+      body: formData,
+      credentials: "include",
     }).catch(err => {
-      alert("Network/CORS Error: " + err.message);
+      alert("Network Error: " + err.message);
       throw err;
     });
 
     if (!uploadRes.ok) {
-      const text = await uploadRes.text();
-      alert("Backblaze Error (" + uploadRes.status + "): " + text);
-      throw new Error("Upload failed");
-    }
-
-    // Use direct fetch so folderName is guaranteed to be in the body
-    const body = {
-      originalFilename: file.name,
-      mimeType: file.type,
-      size: file.size,
-      objectPath: objectKey,
-      mediaType: file.type.startsWith("video") ? "video" : "photo",
-      folderName: folderName || null,
-    };
-    console.log("[DEBUG] POSTing to /api/media:", body);
-    const saveRes = await fetch("/api/media", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      credentials: "include",
-    });
-    if (!saveRes.ok) {
-      const err = await saveRes.json().catch(() => ({}));
+      const err = await uploadRes.json().catch(() => ({}));
+      alert("Upload Failed: " + (err.error || uploadRes.statusText));
       throw new Error(err.error || "Failed to save file");
     }
   };
