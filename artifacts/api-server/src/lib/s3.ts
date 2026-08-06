@@ -11,7 +11,7 @@ export const s3Client = new S3Client({
     accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
     secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || "",
   },
-  forcePathStyle: false, // B2 requires virtual-hosted style for CORS preflight to work correctly
+  forcePathStyle: true, // B2 signature validation fails on virtual-hosted style with some SDKs
   requestChecksumCalculation: "WHEN_NOT_SUPPORTED",
   responseChecksumValidation: "WHEN_NOT_SUPPORTED",
 });
